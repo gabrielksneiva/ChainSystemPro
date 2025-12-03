@@ -171,7 +171,6 @@ func TestTxInput_Value(t *testing.T) {
 	input := TxInput{
 		PrevTxID:  "abc123",
 		PrevVout:  0,
-		ScriptSig: []byte{0x76, 0xa9},
 		Sequence:  0xffffffff,
 	}
 

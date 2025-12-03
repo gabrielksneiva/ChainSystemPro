@@ -149,6 +149,30 @@ func (c *Client) GetRawTransaction(txid string) (string, error) {
 	return hexStr, nil
 }
 
+// SendRawTransaction broadcasts a raw transaction to the network and returns its TXID
+func (c *Client) SendRawTransaction(txHex string) (string, error) {
+	result, err := c.CallRPC("sendrawtransaction", txHex)
+	if err != nil {
+		return "", fmt.Errorf("failed to send raw transaction: %w", err)
+	}
+
+	txid, ok := result.(string)
+	if !ok {
+		return "", fmt.Errorf("unexpected response format")
+	}
+	return txid, nil
+}
+
+// GetTransactionStatus returns confirmations count and whether it's confirmed
+func (c *Client) GetTransactionStatus(txid string) (uint32, bool, error) {
+	tx, err := c.GetTransaction(txid)
+	if err != nil {
+		return 0, false, err
+	}
+	conf := tx.Confirmations
+	return conf, conf > 0, nil
+}
+
 func getUint32(m map[string]interface{}, key string) uint32 {
 	if val, ok := m[key].(float64); ok {
 		return uint32(val)

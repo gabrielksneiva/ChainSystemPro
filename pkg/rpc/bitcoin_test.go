@@ -492,6 +492,83 @@ func TestClient_GetRawTransaction_UnexpectedFormat(t *testing.T) {
 	assert.Contains(t, err.Error(), "unexpected response format")
 }
 
+func TestClient_SendRawTransaction(t *testing.T) {
+	tests := []struct {
+		name           string
+		txHex          string
+		serverResponse RPCResponse
+		expectErr      bool
+		expectedTXID   string
+	}{
+		{
+			name:  "broadcast success",
+			txHex: "010000...",
+			serverResponse: RPCResponse{
+				Result: "abcd1234txid",
+				Error:  nil,
+				ID:     "1",
+			},
+			expectErr:    false,
+			expectedTXID: "abcd1234txid",
+		},
+		{
+			name:  "broadcast error",
+			txHex: "badhex",
+			serverResponse: RPCResponse{
+				Result: nil,
+				Error:  &RPCError{Code: -26, Message: "TX decode failed"},
+				ID:     "1",
+			},
+			expectErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(http.StatusOK)
+				json.NewEncoder(w).Encode(tt.serverResponse)
+			}))
+			defer server.Close()
+
+			client, err := NewClient(server.URL, "user", "pass")
+			require.NoError(t, err)
+
+			txid, err := client.SendRawTransaction(tt.txHex)
+			if tt.expectErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.expectedTXID, txid)
+			}
+		})
+	}
+}
+
+func TestClient_GetTransactionStatus(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		resp := RPCResponse{
+			Result: map[string]interface{}{
+				"txid":          "abc",
+				"confirmations": float64(3),
+			},
+			Error: nil,
+			ID:    "1",
+		}
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(resp)
+	}))
+	defer server.Close()
+
+	client, err := NewClient(server.URL, "user", "pass")
+	require.NoError(t, err)
+
+	conf, confirmed, err := client.GetTransactionStatus("abc")
+	assert.NoError(t, err)
+	assert.Equal(t, uint32(3), conf)
+	assert.True(t, confirmed)
+}
+
 func TestTransaction_Value(t *testing.T) {
 	tx := Transaction{
 		TxID:          "abc123",
