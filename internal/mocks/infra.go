@@ -3,6 +3,7 @@ package mocks
 import (
 	"context"
 	"fmt"
+	"sync"
 
 	"github.com/gabrielksneiva/ChainSystemPro/internal/domain/ports"
 )
@@ -80,6 +81,7 @@ func (p *MockEventPublisher) PublishBatch(ctx context.Context, events []interfac
 
 // MockLogger is a mock implementation of Logger
 type MockLogger struct {
+	mu         sync.Mutex
 	DebugCalls []LogCall
 	InfoCalls  []LogCall
 	WarnCalls  []LogCall
@@ -106,21 +108,31 @@ func NewMockLogger() *MockLogger {
 }
 
 func (l *MockLogger) Debug(msg string, fields map[string]interface{}) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
 	l.DebugCalls = append(l.DebugCalls, LogCall{Message: msg, Fields: fields})
 }
 
 func (l *MockLogger) Info(msg string, fields map[string]interface{}) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
 	l.InfoCalls = append(l.InfoCalls, LogCall{Message: msg, Fields: fields})
 }
 
 func (l *MockLogger) Warn(msg string, fields map[string]interface{}) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
 	l.WarnCalls = append(l.WarnCalls, LogCall{Message: msg, Fields: fields})
 }
 
 func (l *MockLogger) Error(msg string, err error, fields map[string]interface{}) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
 	l.ErrorCalls = append(l.ErrorCalls, LogCall{Message: msg, Fields: fields, Error: err})
 }
 
 func (l *MockLogger) Fatal(msg string, err error, fields map[string]interface{}) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
 	l.FatalCalls = append(l.FatalCalls, LogCall{Message: msg, Fields: fields, Error: err})
 }

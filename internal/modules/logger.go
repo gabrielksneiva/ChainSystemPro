@@ -7,9 +7,5 @@ import (
 
 // LoggerModule provides logger dependency
 var LoggerModule = fx.Module("logger",
-	fx.Provide(
-		func() (*logger.ZapLogger, error) {
-			return logger.NewDevelopmentLogger()
-		},
-	),
+	fx.Provide(logger.NewDevelopmentLogger),
 )

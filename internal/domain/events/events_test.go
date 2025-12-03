@@ -61,10 +61,10 @@ func TestNewTransactionSignedEvent(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	hash, _ := valueobjects.NewHash("0xabcdef")
-	sig, _ := valueobjects.NewSignature("0x123456")
-	tx.SetHash(hash)
-	tx.SetSignature(sig)
+	hash, _ := valueobjects.NewHash("0xabcd")
+	sig, _ := valueobjects.NewSignature("0x1234")
+	_ = tx.SetHash(hash)
+	_ = tx.SetSignature(sig)
 
 	event := NewTransactionSignedEvent(tx)
 
@@ -100,8 +100,8 @@ func TestNewTransactionConfirmedEvent(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	hash, _ := valueobjects.NewHash("0xabcdef")
-	tx.SetHash(hash)
+	hash, _ := valueobjects.NewHash("0xabcd")
+	_ = tx.SetHash(hash)
 	tx.SetBlockNumber(12345)
 	tx.SetConfirmations(10)
 

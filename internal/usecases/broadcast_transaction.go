@@ -77,7 +77,10 @@ func (uc *BroadcastTransactionUseCase) Execute(ctx context.Context, input Broadc
 			err.Error(),
 			"BROADCAST_ERROR",
 		)
-		uc.eventBus.Publish(ctx, event)
+		if pubErr := uc.eventBus.Publish(ctx, event); pubErr != nil {
+			// Log the publish error but don't override the original broadcast error
+			fmt.Printf("failed to publish broadcast error event: %v\n", pubErr)
+		}
 
 		return nil, fmt.Errorf("failed to broadcast transaction: %w", err)
 	}

@@ -103,12 +103,18 @@ func (h *EVMHarness) SignTransaction(ctx context.Context, tx *entities.Transacti
 		return fmt.Errorf("private key cannot be empty")
 	}
 	hashBytes := make([]byte, 32)
-	rand.Read(hashBytes)
+	if _, err := rand.Read(hashBytes); err != nil {
+		return fmt.Errorf("failed to generate random hash: %w", err)
+	}
 	hash, _ := valueobjects.NewHashFromBytes(hashBytes)
 	sigBytes := make([]byte, 65)
-	rand.Read(sigBytes)
+	if _, err := rand.Read(sigBytes); err != nil {
+		return fmt.Errorf("failed to generate random signature: %w", err)
+	}
 	sig, _ := valueobjects.NewSignatureFromBytes(sigBytes)
-	tx.SetHash(hash)
+	if err := tx.SetHash(hash); err != nil {
+		return err
+	}
 	return tx.SetSignature(sig)
 }
 

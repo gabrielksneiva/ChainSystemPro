@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/gabrielksneiva/ChainSystemPro/internal/modules"
+
 	"go.uber.org/fx"
 )
 

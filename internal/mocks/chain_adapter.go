@@ -9,9 +9,14 @@ import (
 )
 
 type MockChainAdapter struct {
-	GetChainIDFunc            func() string
-	GetBalanceFunc            func(ctx context.Context, chainID string, address *valueobjects.Address) (*big.Int, error)
-	GetTokenBalanceFunc       func(ctx context.Context, chainID string, address *valueobjects.Address, tokenAddress *valueobjects.Address) (*big.Int, error)
+	GetChainIDFunc      func() string
+	GetBalanceFunc      func(ctx context.Context, chainID string, address *valueobjects.Address) (*big.Int, error)
+	GetTokenBalanceFunc func(
+		ctx context.Context,
+		chainID string,
+		address *valueobjects.Address,
+		tokenAddress *valueobjects.Address,
+	) (*big.Int, error)
 	BuildTransactionFunc      func(ctx context.Context, params entities.TransactionParams) (*entities.Transaction, error)
 	SignTransactionFunc       func(ctx context.Context, tx *entities.Transaction, privateKey []byte) error
 	BroadcastTransactionFunc  func(ctx context.Context, tx *entities.Transaction) (*valueobjects.Hash, error)
@@ -50,7 +55,11 @@ func (m *MockChainAdapter) GetBalance(ctx context.Context, chainID string, addre
 	return big.NewInt(0), nil
 }
 
-func (m *MockChainAdapter) GetTokenBalance(ctx context.Context, chainID string, address, tokenAddress *valueobjects.Address) (*big.Int, error) {
+func (m *MockChainAdapter) GetTokenBalance(
+	ctx context.Context,
+	chainID string,
+	address, tokenAddress *valueobjects.Address,
+) (*big.Int, error) {
 	if m.GetTokenBalanceFunc != nil {
 		return m.GetTokenBalanceFunc(ctx, chainID, address, tokenAddress)
 	}
@@ -78,9 +87,10 @@ func (m *MockChainAdapter) SignTransaction(ctx context.Context, tx *entities.Tra
 	}
 	hash, _ := valueobjects.NewHash("0xabcd")
 	sig, _ := valueobjects.NewSignature("0x1234")
-	tx.SetHash(hash)
-	tx.SetSignature(sig)
-	return nil
+	if err := tx.SetHash(hash); err != nil {
+		return err
+	}
+	return tx.SetSignature(sig)
 }
 
 func (m *MockChainAdapter) VerifySignature(ctx context.Context, tx *entities.Transaction) (bool, error) {

@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"math/big"
+	"net/http"
 	"net/http/httptest"
 	"testing"
 
@@ -37,15 +38,17 @@ func TestServerRoutes(t *testing.T) {
 	srv := NewServer(reg, gb, ct, st, bt, ef, gs, logger)
 
 	// list chains
-	req := httptest.NewRequest("GET", "/v1/chains", nil)
+	req := httptest.NewRequest("GET", "/v1/chains", http.NoBody)
 	resp, err := srv.app.Test(req, -1)
 	require.NoError(t, err)
+	defer resp.Body.Close()
 	require.Equal(t, 200, resp.StatusCode)
 
 	// balance endpoint
-	req = httptest.NewRequest("GET", "/v1/evm-mainnet/balance/0xabc", nil)
+	req = httptest.NewRequest("GET", "/v1/evm-mainnet/balance/0xabc", http.NoBody)
 	resp, err = srv.app.Test(req, -1)
 	require.NoError(t, err)
+	defer resp.Body.Close()
 	require.Equal(t, 200, resp.StatusCode)
 
 	// create transaction
@@ -55,6 +58,7 @@ func TestServerRoutes(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 	resp, err = srv.app.Test(req, -1)
 	require.NoError(t, err)
+	defer resp.Body.Close()
 	require.Equal(t, 201, resp.StatusCode)
 
 	// broadcast transaction
@@ -64,30 +68,42 @@ func TestServerRoutes(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 	resp, err = srv.app.Test(req, -1)
 	require.NoError(t, err)
+	defer resp.Body.Close()
 	require.Equal(t, 200, resp.StatusCode)
 
 	// get transaction status
 	h.SetBalance("0xabc", big.NewInt(100))
 	from, _ := valueobjects.NewAddress("0xabc", "evm-mainnet")
 	to, _ := valueobjects.NewAddress("0xdef", "evm-mainnet")
-	testTx, _ := h.BuildTransaction(context.Background(), entities.TransactionParams{ChainID: "evm-mainnet", From: from, To: to, Value: big.NewInt(1)})
+	testTx, _ := h.BuildTransaction(
+		context.Background(),
+		entities.TransactionParams{
+			ChainID: "evm-mainnet",
+			From:    from,
+			To:      to,
+			Value:   big.NewInt(1),
+		},
+	)
 	_ = h.SignTransaction(context.Background(), testTx, []byte("key"))
 	txHash, _ := h.BroadcastTransaction(context.Background(), testTx)
-	req = httptest.NewRequest("GET", "/v1/evm-mainnet/transaction/"+txHash.HexWithoutPrefix(), nil)
+	req = httptest.NewRequest("GET", "/v1/evm-mainnet/transaction/"+txHash.HexWithoutPrefix(), http.NoBody)
 	resp, err = srv.app.Test(req, -1)
 	require.NoError(t, err)
+	defer resp.Body.Close()
 	require.Equal(t, 200, resp.StatusCode)
 
 	// error cases
-	req = httptest.NewRequest("GET", "/v1/unknown/balance/0xabc", nil)
+	req = httptest.NewRequest("GET", "/v1/unknown/balance/0xabc", http.NoBody)
 	resp, err = srv.app.Test(req, -1)
 	require.NoError(t, err)
+	defer resp.Body.Close()
 	require.Equal(t, 500, resp.StatusCode)
 
 	req = httptest.NewRequest("POST", "/v1/evm-mainnet/transaction/create", bytes.NewReader([]byte("invalid")))
 	req.Header.Set("Content-Type", "application/json")
 	resp, err = srv.app.Test(req, -1)
 	require.NoError(t, err)
+	defer resp.Body.Close()
 	require.Equal(t, 400, resp.StatusCode)
 }
 

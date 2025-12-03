@@ -65,7 +65,7 @@ func TestChainRegistry_Get(t *testing.T) {
 
 	t.Run("success", func(t *testing.T) {
 		adapter := &mocks.MockChainAdapter{}
-		registry.Register("ethereum", adapter)
+		_ = registry.Register("ethereum", adapter)
 
 		retrieved, err := registry.Get("ethereum")
 
@@ -87,7 +87,7 @@ func TestChainRegistry_Unregister(t *testing.T) {
 
 	t.Run("success", func(t *testing.T) {
 		adapter := &mocks.MockChainAdapter{}
-		registry.Register("ethereum", adapter)
+		_ = registry.Register("ethereum", adapter)
 
 		err := registry.Unregister("ethereum")
 
@@ -110,8 +110,8 @@ func TestChainRegistry_List(t *testing.T) {
 	adapter1 := &mocks.MockChainAdapter{}
 	adapter2 := &mocks.MockChainAdapter{}
 
-	registry.Register("ethereum", adapter1)
-	registry.Register("polygon", adapter2)
+	_ = registry.Register("ethereum", adapter1)
+	_ = registry.Register("polygon", adapter2)
 
 	chains := registry.List()
 
@@ -125,7 +125,7 @@ func TestChainRegistry_Has(t *testing.T) {
 	registry := NewChainRegistry(logger)
 
 	adapter := &mocks.MockChainAdapter{}
-	registry.Register("ethereum", adapter)
+	_ = registry.Register("ethereum", adapter)
 
 	assert.True(t, registry.Has("ethereum"))
 	assert.False(t, registry.Has("unknown"))
@@ -141,7 +141,7 @@ func TestChainRegistry_Concurrent(t *testing.T) {
 		go func(id int) {
 			adapter := &mocks.MockChainAdapter{}
 			chainID := fmt.Sprintf("chain-%d", id)
-			registry.Register(chainID, adapter)
+			_ = registry.Register(chainID, adapter)
 			done <- true
 		}(i)
 	}

@@ -101,8 +101,8 @@ func TestInMemoryEventBus_MultipleSubscribers(t *testing.T) {
 		return nil
 	}
 
-	bus.Subscribe(ctx, "test.event", handler1)
-	bus.Subscribe(ctx, "test.event", handler2)
+	_ = bus.Subscribe(ctx, "test.event", handler1)
+	_ = bus.Subscribe(ctx, "test.event", handler2)
 
 	event := testEvent{eventType: "test.event", data: "test"}
 	err := bus.Publish(ctx, event)
@@ -130,7 +130,7 @@ func TestInMemoryEventBus_HandlerError(t *testing.T) {
 		return fmt.Errorf("handler error")
 	}
 
-	bus.Subscribe(ctx, "test.event", handler)
+	_ = bus.Subscribe(ctx, "test.event", handler)
 
 	event := testEvent{eventType: "test.event", data: "test"}
 	err := bus.Publish(ctx, event)
@@ -148,8 +148,8 @@ func TestInMemoryEventBus_Unsubscribe(t *testing.T) {
 		return nil
 	}
 
-	bus.Subscribe(ctx, "test.event", handler)
-	bus.Unsubscribe(ctx, "test.event")
+	_ = bus.Subscribe(ctx, "test.event", handler)
+	_ = bus.Unsubscribe(ctx, "test.event")
 
 	event := testEvent{eventType: "test.event", data: "test"}
 	err := bus.Publish(ctx, event)
@@ -173,7 +173,7 @@ func TestInMemoryEventBus_PublishBatch(t *testing.T) {
 		return nil
 	}
 
-	bus.Subscribe(ctx, "test.event", handler)
+	_ = bus.Subscribe(ctx, "test.event", handler)
 
 	events := []interface{}{
 		testEvent{eventType: "test.event", data: "1"},
@@ -219,7 +219,7 @@ func TestInMemoryEventBus_PublishBatchError(t *testing.T) {
 		return nil
 	}
 
-	bus.Subscribe(ctx, "test.event", handler)
+	_ = bus.Subscribe(ctx, "test.event", handler)
 
 	events := []interface{}{
 		testEvent{eventType: "test.event", data: "ok"},

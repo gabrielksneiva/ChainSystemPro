@@ -76,7 +76,7 @@ func TestZapLogger_Sync(t *testing.T) {
 
 	// Should not panic or error
 	assert.NotPanics(t, func() {
-		logger.Sync()
+		_ = logger.Sync()
 	})
 }
 
