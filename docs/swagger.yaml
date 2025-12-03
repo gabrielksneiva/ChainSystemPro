@@ -1,0 +1,219 @@
+basePath: /v1
+definitions:
+  internal_api.BroadcastTransactionRequest:
+    properties:
+      signed_data:
+        type: string
+      transaction_id:
+        type: string
+    type: object
+  internal_api.CreateTransactionRequest:
+    properties:
+      data:
+        items:
+          type: integer
+        type: array
+      from:
+        type: string
+      gas_limit:
+        type: integer
+      to:
+        type: string
+      value:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: gabrielksneiva@example.com
+    name: Gabriel Neiva
+  description: Unified Multi-Chain Connector - API REST para interação com múltiplas
+    blockchains
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  termsOfService: http://swagger.io/terms/
+  title: ChainSystemPro API
+  version: "1.0"
+paths:
+  /{chain}/balance/{address}:
+    get:
+      consumes:
+      - application/json
+      description: Retorna o saldo de um endereço em uma blockchain específica
+      parameters:
+      - description: Chain ID
+        example: ethereum
+        in: path
+        name: chain
+        required: true
+        type: string
+      - description: Wallet Address
+        example: 0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb
+        in: path
+        name: address
+        required: true
+        type: string
+      - description: Token Contract Address
+        in: query
+        name: token_address
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Saldo da carteira
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Requisição inválida
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Consulta saldo de uma carteira
+      tags:
+      - Balance
+  /{chain}/transaction/{hash}:
+    get:
+      consumes:
+      - application/json
+      description: Retorna informações sobre o status de uma transação específica
+      parameters:
+      - description: Chain ID
+        example: ethereum
+        in: path
+        name: chain
+        required: true
+        type: string
+      - description: Transaction Hash
+        example: 0xabcdef...
+        in: path
+        name: hash
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Status da transação
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Requisição inválida
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Consulta status de uma transação
+      tags:
+      - Transactions
+  /{chain}/transaction/create:
+    post:
+      consumes:
+      - application/json
+      description: Cria e prepara uma transação para ser assinada e transmitida
+      parameters:
+      - description: Chain ID
+        example: ethereum
+        in: path
+        name: chain
+        required: true
+        type: string
+      - description: Transaction data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_api.CreateTransactionRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Transação criada
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Requisição inválida
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Cria uma nova transação
+      tags:
+      - Transactions
+  /{chain}/transaction/send:
+    post:
+      consumes:
+      - application/json
+      description: Envia uma transação assinada para a blockchain
+      parameters:
+      - description: Chain ID
+        example: ethereum
+        in: path
+        name: chain
+        required: true
+        type: string
+      - description: Signed transaction data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_api.BroadcastTransactionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Transação transmitida
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Requisição inválida
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Transmite uma transação assinada
+      tags:
+      - Transactions
+  /chains:
+    get:
+      consumes:
+      - application/json
+      description: Retorna uma lista de IDs de todas as blockchains registradas no
+        sistema
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Lista de chains
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Lista todas as blockchains suportadas
+      tags:
+      - Chains
+schemes:
+- http
+- https
+swagger: "2.0"

@@ -1,0 +1,317 @@
+{
+    "schemes": [
+        "http",
+        "https"
+    ],
+    "swagger": "2.0",
+    "info": {
+        "description": "Unified Multi-Chain Connector - API REST para interação com múltiplas blockchains",
+        "title": "ChainSystemPro API",
+        "termsOfService": "http://swagger.io/terms/",
+        "contact": {
+            "name": "Gabriel Neiva",
+            "email": "gabrielksneiva@example.com"
+        },
+        "license": {
+            "name": "MIT",
+            "url": "https://opensource.org/licenses/MIT"
+        },
+        "version": "1.0"
+    },
+    "host": "localhost:8080",
+    "basePath": "/v1",
+    "paths": {
+        "/chains": {
+            "get": {
+                "description": "Retorna uma lista de IDs de todas as blockchains registradas no sistema",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Chains"
+                ],
+                "summary": "Lista todas as blockchains suportadas",
+                "responses": {
+                    "200": {
+                        "description": "Lista de chains",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/{chain}/balance/{address}": {
+            "get": {
+                "description": "Retorna o saldo de um endereço em uma blockchain específica",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Balance"
+                ],
+                "summary": "Consulta saldo de uma carteira",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "ethereum",
+                        "description": "Chain ID",
+                        "name": "chain",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb",
+                        "description": "Wallet Address",
+                        "name": "address",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Token Contract Address",
+                        "name": "token_address",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Saldo da carteira",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Requisição inválida",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/{chain}/transaction/create": {
+            "post": {
+                "description": "Cria e prepara uma transação para ser assinada e transmitida",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Transactions"
+                ],
+                "summary": "Cria uma nova transação",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "ethereum",
+                        "description": "Chain ID",
+                        "name": "chain",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Transaction data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_api.CreateTransactionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Transação criada",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Requisição inválida",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/{chain}/transaction/send": {
+            "post": {
+                "description": "Envia uma transação assinada para a blockchain",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Transactions"
+                ],
+                "summary": "Transmite uma transação assinada",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "ethereum",
+                        "description": "Chain ID",
+                        "name": "chain",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Signed transaction data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_api.BroadcastTransactionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Transação transmitida",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Requisição inválida",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/{chain}/transaction/{hash}": {
+            "get": {
+                "description": "Retorna informações sobre o status de uma transação específica",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Transactions"
+                ],
+                "summary": "Consulta status de uma transação",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "ethereum",
+                        "description": "Chain ID",
+                        "name": "chain",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "0xabcdef...",
+                        "description": "Transaction Hash",
+                        "name": "hash",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Status da transação",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Requisição inválida",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "internal_api.BroadcastTransactionRequest": {
+            "type": "object",
+            "properties": {
+                "signed_data": {
+                    "type": "string"
+                },
+                "transaction_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_api.CreateTransactionRequest": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "from": {
+                    "type": "string"
+                },
+                "gas_limit": {
+                    "type": "integer"
+                },
+                "to": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}

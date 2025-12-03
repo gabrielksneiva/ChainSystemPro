@@ -1,0 +1,33 @@
+app:
+  name: ChainSystemPro
+  version: 1.0.0
+  port: 8080
+
+logging:
+  level: info
+  format: json
+
+chains:
+  enabled:
+    - evm
+    - tron
+    - bitcoin
+
+evm:
+  networks:
+    - name: ethereum
+      rpc_url: https://eth.llamarpc.com
+      chain_id: 1
+    - name: polygon
+      rpc_url: https://polygon-rpc.com
+      chain_id: 137
+
+tron:
+  networks:
+    - name: mainnet
+      api_url: https://api.trongrid.io
+      
+bitcoin:
+  networks:
+    - name: mainnet
+      rpc_url: https://blockstream.info/api
