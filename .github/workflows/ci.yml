@@ -174,18 +174,11 @@ jobs:
           sudo apt-get update -y
           sudo apt-get install -y gh
 
-      - name: Verify gh auth
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Configure Git
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-          echo "$GH_TOKEN" | gh auth login --with-token
-          gh auth status
-      
-      - name: Fetch all
-        run: git fetch --all --prune
       - name: Create Pull Request to develop
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -238,12 +231,10 @@ jobs:
           sudo apt-get update -y
           sudo apt-get install -y gh
 
-      - name: Verify gh auth
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Configure Git
         run: |
-          gh --version
-          gh auth status || gh auth login --with-token <<< "$GH_TOKEN"
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Create Pull Request to main
         env:
