@@ -88,12 +88,13 @@ jobs:
         uses: golangci/golangci-lint-action@v6
         with:
           version: latest
-          args: --timeout=5m --issues-exit-code=1 --out-format=sarif > lint-results.sarif
+          args: --timeout=5m --issues-exit-code=1 --out-format=github-actions,sarif
 
       - name: Upload lint SARIF
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: lint-results.sarif
+          sarif_file: golangci-lint.sarif
+
 
   security:
     name: Security Scan
