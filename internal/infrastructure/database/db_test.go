@@ -29,8 +29,8 @@ func TestNewDatabase(t *testing.T) {
 	)
 	require.NoError(t, err)
 	defer func() {
-		if err := testcontainers.TerminateContainer(pgContainer); err != nil {
-			t.Logf("failed to terminate container: %s", err)
+		if termErr := testcontainers.TerminateContainer(pgContainer); termErr != nil {
+			t.Logf("failed to terminate container: %s", termErr)
 		}
 	}()
 
@@ -103,8 +103,8 @@ func TestRunMigrations(t *testing.T) {
 	)
 	require.NoError(t, err)
 	defer func() {
-		if err := testcontainers.TerminateContainer(pgContainer); err != nil {
-			t.Logf("failed to terminate container: %s", err)
+		if termErr := testcontainers.TerminateContainer(pgContainer); termErr != nil {
+			t.Logf("failed to terminate container: %s", termErr)
 		}
 	}()
 

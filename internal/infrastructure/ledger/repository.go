@@ -86,17 +86,19 @@ func NewRepository(db *sqlx.DB) Repository {
 	return &repository{db: db}
 }
 
+const insertLedgerEntryQuery = `
+	INSERT INTO ledger_entries (
+		id, entry_type, chain_id, address, amount, asset, 
+		tx_hash, event_id, metadata, balance_after, created_at
+	) VALUES (
+		:id, :entry_type, :chain_id, :address, :amount, :asset,
+		:tx_hash, :event_id, :metadata, :balance_after, :created_at
+	)
+`
+
 // Create creates a new ledger entry
 func (r *repository) Create(ctx context.Context, entry *Entry) error {
-	query := `
-		INSERT INTO ledger_entries (
-			id, entry_type, chain_id, address, amount, asset, 
-			tx_hash, event_id, metadata, balance_after, created_at
-		) VALUES (
-			:id, :entry_type, :chain_id, :address, :amount, :asset,
-			:tx_hash, :event_id, :metadata, :balance_after, :created_at
-		)
-	`
+	query := insertLedgerEntryQuery
 
 	if entry.ID == uuid.Nil {
 		entry.ID = uuid.New()

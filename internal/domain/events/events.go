@@ -172,7 +172,12 @@ type BalanceQueriedEvent struct {
 }
 
 // NewBalanceQueriedEvent creates a new balance queried event
-func NewBalanceQueriedEvent(chainID string, address *valueobjects.Address, balance *big.Int, tokenAddress *valueobjects.Address) *BalanceQueriedEvent {
+func NewBalanceQueriedEvent(
+	chainID string,
+	address *valueobjects.Address,
+	balance *big.Int,
+	tokenAddress *valueobjects.Address,
+) *BalanceQueriedEvent {
 	event := &BalanceQueriedEvent{
 		BaseEvent: NewBaseEvent(EventTypeBalanceQueried, chainID),
 		Address:   address.String(),

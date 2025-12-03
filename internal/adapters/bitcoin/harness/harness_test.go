@@ -10,6 +10,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const (
+	testAddress1 = "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa"
+	testAddress2 = "1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2"
+	testRawTx    = "0100000001abcdef1234567890"
+	testAddress3 = "1TestAddress"
+)
+
 func TestNewBitcoinHarness(t *testing.T) {
 	h := NewBitcoinHarness()
 
@@ -34,7 +41,7 @@ func TestGetBalance(t *testing.T) {
 	h := NewBitcoinHarness()
 
 	t.Run("address with balance", func(t *testing.T) {
-		address := "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa"
+		address := testAddress1
 		expectedBalance := big.NewInt(100000000)
 		h.SetBalance(address, expectedBalance)
 
@@ -44,7 +51,7 @@ func TestGetBalance(t *testing.T) {
 	})
 
 	t.Run("address without balance", func(t *testing.T) {
-		address := "1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2"
+		address := testAddress2
 
 		balance, err := h.GetBalance(context.Background(), address)
 		require.NoError(t, err)
@@ -143,7 +150,7 @@ func TestGetRawTransaction(t *testing.T) {
 func TestSendRawTransaction(t *testing.T) {
 	h := NewBitcoinHarness()
 
-	rawTx := "0100000001abcdef1234567890"
+	rawTx := testRawTx
 
 	txHash, err := h.SendRawTransaction(context.Background(), rawTx)
 	require.NoError(t, err)
@@ -183,7 +190,7 @@ func TestMineBlock(t *testing.T) {
 	initialHeight := h.blockHeight
 
 	// Add transaction to mempool
-	rawTx := "0100000001abcdef1234567890"
+	rawTx := testRawTx
 	txHash, err := h.SendRawTransaction(context.Background(), rawTx)
 	require.NoError(t, err)
 
@@ -213,7 +220,7 @@ func TestMineBlock(t *testing.T) {
 func TestSetBalance(t *testing.T) {
 	h := NewBitcoinHarness()
 
-	address := "1TestAddress"
+	address := testAddress3
 	balance := big.NewInt(500000000)
 
 	h.SetBalance(address, balance)
@@ -226,7 +233,7 @@ func TestSetBalance(t *testing.T) {
 func TestAddUTXO(t *testing.T) {
 	h := NewBitcoinHarness()
 
-	address := "1TestAddress"
+	address := testAddress3
 	utxo := bitcoin.UTXO{
 		TxID:          "test_tx",
 		Vout:          0,

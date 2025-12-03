@@ -251,7 +251,7 @@ func TestCreateTransaction(t *testing.T) {
 		toAddr, err := valueobjects.NewAddress("1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2", "bitcoin-mainnet")
 		require.NoError(t, err)
 
-		mockRPC.On("ListUnspent", mock.Anything, fromAddr.String()).Return(([]UTXO)(nil), assert.AnError)
+		mockRPC.On("ListUnspent", mock.Anything, fromAddr.String()).Return([]UTXO(nil), assert.AnError)
 
 		params := entities.TransactionParams{
 			ChainID: "bitcoin-mainnet",
@@ -383,8 +383,7 @@ func TestCreateSignature(t *testing.T) {
 	tx, err := entities.NewTransaction(params)
 	require.NoError(t, err)
 
-	privateKey := []byte("test-private-key")
-	signature := adapter.createSignature(tx, privateKey)
+	signature := adapter.createSignature(tx)
 
 	assert.NotEmpty(t, signature)
 }

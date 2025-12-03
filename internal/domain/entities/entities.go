@@ -292,6 +292,9 @@ func NewFee(gasLimit uint64, gasPrice *big.Int, currency string) (*Fee, error) {
 	if currency == "" {
 		return nil, fmt.Errorf("currency cannot be empty")
 	}
+	if gasLimit > 9223372036854775807 {
+		return nil, fmt.Errorf("gas limit exceeds maximum safe value")
+	}
 
 	total := new(big.Int).Mul(big.NewInt(int64(gasLimit)), gasPrice)
 
@@ -316,6 +319,9 @@ func NewEIP1559Fee(gasLimit uint64, maxFeePerGas, maxPriorityFee *big.Int, curre
 	}
 	if currency == "" {
 		return nil, fmt.Errorf("currency cannot be empty")
+	}
+	if gasLimit > 9223372036854775807 {
+		return nil, fmt.Errorf("gas limit exceeds maximum safe value")
 	}
 
 	total := new(big.Int).Mul(big.NewInt(int64(gasLimit)), maxFeePerGas)

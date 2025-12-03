@@ -13,10 +13,12 @@ import (
 	"github.com/testcontainers/testcontainers-go/wait"
 )
 
-func setupRedisBackend(t *testing.T) (*RedisStreamBackend, func()) {
+func setupRedisBackend(t *testing.T) (backend *RedisStreamBackend, cleanup func()) {
+	var err error
 	ctx := context.Background()
 
-	redisContainer, err := redis.Run(ctx,
+	var redisContainer *redis.RedisContainer
+	redisContainer, err = redis.Run(ctx,
 		"redis:7-alpine",
 		testcontainers.WithWaitStrategy(
 			wait.ForLog("Ready to accept connections").
@@ -33,10 +35,10 @@ func setupRedisBackend(t *testing.T) (*RedisStreamBackend, func()) {
 		DB:       0,
 	}
 
-	backend, err := NewRedisStreamBackend(cfg)
+	backend, err = NewRedisStreamBackend(cfg)
 	require.NoError(t, err)
 
-	cleanup := func() {
+	cleanup = func() {
 		backend.Close()
 		if err := testcontainers.TerminateContainer(redisContainer); err != nil {
 			t.Logf("failed to terminate container: %s", err)
@@ -71,6 +73,7 @@ func TestRedisStreamBackend_PublishAndSubscribe(t *testing.T) {
 	// Subscribe using private method for testing
 	received := make(chan Event, 1)
 	handler := func(ctx context.Context, e Event) error {
+		_ = ctx
 		received <- e
 		cancel() // Stop subscription after receiving
 		return nil
@@ -149,6 +152,7 @@ func TestRedisStreamBackend_IdempotentDelivery(t *testing.T) {
 
 	processedIDs := make(map[string]int)
 	handler := func(ctx context.Context, e Event) error {
+		_ = ctx
 		processedIDs[e.ID]++
 		if processedIDs[e.ID] >= 1 {
 			cancel()
@@ -198,13 +202,11 @@ func TestRedisStreamBackend_PublicMethods(t *testing.T) {
 	t.Run("Subscribe", func(t *testing.T) {
 		receivedEvents := make(chan interface{}, 1)
 
-		// Create a typed event
-		type TestEvent struct {
-			Data string
-		}
+		// Map is used as event type
 		eventType := "map[string]interface {}" // This is how getEventType formats map types
 
 		handler := func(ctx context.Context, event interface{}) error {
+			_ = ctx
 			receivedEvents <- event
 			return nil
 		}

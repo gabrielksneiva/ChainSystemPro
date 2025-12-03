@@ -17,10 +17,14 @@ import (
 	"github.com/testcontainers/testcontainers-go/wait"
 )
 
-func setupTestDB(t *testing.T) (*database.DB, func()) {
+const testChainID = "evm-1"
+
+func setupTestDB(t *testing.T) (db *database.DB, cleanup func()) {
+	var err error
 	ctx := context.Background()
 
-	pgContainer, err := postgres.Run(ctx,
+	var pgContainer *postgres.PostgresContainer
+	pgContainer, err = postgres.Run(ctx,
 		"postgres:16-alpine",
 		postgres.WithDatabase("ledgertest"),
 		postgres.WithUsername("testuser"),
@@ -47,17 +51,17 @@ func setupTestDB(t *testing.T) (*database.DB, func()) {
 		SSLMode:  "disable",
 	}
 
-	db, err := database.New(cfg)
+	db, err = database.New(cfg)
 	require.NoError(t, err)
 
 	// Run migrations
 	err = db.RunMigrations("../../../migrations")
 	require.NoError(t, err)
 
-	cleanup := func() {
+	cleanup = func() {
 		db.Close()
-		if err := testcontainers.TerminateContainer(pgContainer); err != nil {
-			t.Logf("failed to terminate container: %s", err)
+		if termErr := testcontainers.TerminateContainer(pgContainer); termErr != nil {
+			t.Logf("failed to terminate container: %s", termErr)
 		}
 	}
 
@@ -74,7 +78,7 @@ func TestLedgerRepository_Create(t *testing.T) {
 	eventID := uuid.New()
 	entry := &Entry{
 		EntryType:    EntryTypeDeposit,
-		ChainID:      "evm-1",
+		ChainID:      testChainID,
 		Address:      "0x1234567890abcdef",
 		Amount:       "1000000000000000000", // 1 ETH in wei
 		Asset:        "ETH",
@@ -101,7 +105,7 @@ func TestLedgerRepository_GetByID(t *testing.T) {
 	eventID := uuid.New()
 	entry := &Entry{
 		EntryType: EntryTypeTransfer,
-		ChainID:   "evm-1",
+		ChainID:   testChainID,
 		Address:   "0xabcdef",
 		Amount:    "500000000000000000",
 		Asset:     "ETH",
@@ -132,7 +136,7 @@ func TestLedgerRepository_GetByEventID(t *testing.T) {
 	eventID := uuid.New()
 	entry := &Entry{
 		EntryType: EntryTypeMint,
-		ChainID:   "evm-1",
+		ChainID:   testChainID,
 		Address:   "0xminter",
 		Amount:    "1000000",
 		Asset:     "USDT",
@@ -156,7 +160,7 @@ func TestLedgerRepository_ListByAddress(t *testing.T) {
 	repo := NewRepository(db.DB)
 	ctx := context.Background()
 
-	chainID := "evm-1"
+	chainID := testChainID
 	address := "0xtest"
 
 	// Create multiple entries
@@ -187,7 +191,7 @@ func TestLedgerRepository_GetBalance(t *testing.T) {
 	repo := NewRepository(db.DB)
 	ctx := context.Background()
 
-	chainID := "evm-1"
+	chainID := testChainID
 	address := "0xbalance"
 	asset := "ETH"
 
@@ -248,7 +252,7 @@ func TestLedgerRepository_CreateWithTx(t *testing.T) {
 	err := db.WithTransaction(ctx, func(tx *sqlx.Tx) error {
 		entry := &Entry{
 			EntryType: EntryTypeDeposit,
-			ChainID:   "evm-1",
+			ChainID:   testChainID,
 			Address:   "0xtxtest",
 			Amount:    "1000000",
 			Asset:     "ETH",
@@ -260,7 +264,7 @@ func TestLedgerRepository_CreateWithTx(t *testing.T) {
 	require.NoError(t, err)
 
 	// Verify entry was created
-	entries, err := repo.ListByAddress(ctx, "evm-1", "0xtxtest", 10, 0)
+	entries, err := repo.ListByAddress(ctx, testChainID, "0xtxtest", 10, 0)
 	require.NoError(t, err)
 	assert.Len(t, entries, 1)
 }
@@ -278,7 +282,7 @@ func TestLedgerRepository_ListByTxHash(t *testing.T) {
 	for i := 0; i < 3; i++ {
 		entry := &Entry{
 			EntryType: EntryTypeTransfer,
-			ChainID:   "evm-1",
+			ChainID:   testChainID,
 			Address:   "0xaddr",
 			Amount:    "100000",
 			Asset:     "ETH",
@@ -293,7 +297,7 @@ func TestLedgerRepository_ListByTxHash(t *testing.T) {
 	// Create an entry with a different tx hash
 	otherEntry := &Entry{
 		EntryType: EntryTypeDeposit,
-		ChainID:   "evm-1",
+		ChainID:   testChainID,
 		Address:   "0xother",
 		Amount:    "200000",
 		Asset:     "ETH",

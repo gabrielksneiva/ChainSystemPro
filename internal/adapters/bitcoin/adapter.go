@@ -100,6 +100,9 @@ func (a *Adapter) GetBlockNumber(ctx context.Context) (uint64, error) {
 	if err != nil {
 		return 0, fmt.Errorf("failed to get block count: %w", err)
 	}
+	if height < 0 {
+		return 0, fmt.Errorf("invalid block height: %d", height)
+	}
 	return uint64(height), nil
 }
 
@@ -152,7 +155,7 @@ func (a *Adapter) CreateTransaction(ctx context.Context, params entities.Transac
 }
 
 // selectCoins implements a simple coin selection algorithm
-func (a *Adapter) selectCoins(utxos []UTXO, amount *big.Int, feePerByte *big.Int) ([]UTXO, *big.Int, error) {
+func (a *Adapter) selectCoins(utxos []UTXO, amount, feePerByte *big.Int) ([]UTXO, *big.Int, error) {
 	var selected []UTXO
 	total := big.NewInt(0)
 	required := new(big.Int).Set(amount)
@@ -183,7 +186,8 @@ func (a *Adapter) selectCoins(utxos []UTXO, amount *big.Int, feePerByte *big.Int
 func (a *Adapter) SignTransaction(ctx context.Context, tx *entities.Transaction, privateKey []byte) error {
 	// In production, this would use proper Bitcoin signing with ECDSA
 	// For now, we create a simplified signature
-	signature := a.createSignature(tx, privateKey)
+	_ = privateKey // privateKey would be used in production
+	signature := a.createSignature(tx)
 
 	sig, err := valueobjects.NewSignature(hex.EncodeToString(signature))
 	if err != nil {
@@ -196,7 +200,7 @@ func (a *Adapter) SignTransaction(ctx context.Context, tx *entities.Transaction,
 
 	return nil
 } // createSignature creates a transaction signature (simplified)
-func (a *Adapter) createSignature(tx *entities.Transaction, privateKey []byte) []byte {
+func (a *Adapter) createSignature(tx *entities.Transaction) []byte {
 	// In production, use proper Bitcoin SIGHASH and ECDSA signing
 	// This is a simplified version for demonstration
 	data := fmt.Sprintf("%s:%s:%s:%s",

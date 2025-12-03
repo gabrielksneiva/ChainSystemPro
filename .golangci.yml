@@ -14,18 +14,15 @@ linters-settings:
       - opinionated
       - performance
       - style
+    disabled-checks:
+      - hugeParam
   gocyclo:
     min-complexity: 15
   goimports:
     local-prefixes: github.com/gabrielksneiva/ChainSystemPro
-  golint:
-    min-confidence: 0
-  gomnd:
-    settings:
-      mnd:
-        checks: argument,case,condition,return
   govet:
-    check-shadowing: true
+    enable:
+      - shadow
   lll:
     line-length: 140
   maligned:
@@ -39,7 +36,6 @@ linters:
     - bodyclose
     - dupl
     - errcheck
-    - exportloopref
     - funlen
     - gochecknoinits
     - goconst
@@ -47,7 +43,6 @@ linters:
     - gocyclo
     - gofmt
     - goimports
-    - gomnd
     - goprintffuncname
     - gosec
     - gosimple
@@ -68,16 +63,10 @@ issues:
   exclude-rules:
     - path: _test\.go
       linters:
-        - gomnd
         - funlen
         - dupl
+        - unparam
 
 run:
   timeout: 5m
-  issues-exit-code: 1
   tests: true
-
-output:
-  format: colored-line-number
-  print-issued-lines: true
-  print-linter-name: true

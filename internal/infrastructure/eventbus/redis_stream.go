@@ -11,6 +11,8 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
+const eventsStream = "events"
+
 // Event represents an event structure for Redis
 type Event struct {
 	ID        string
@@ -56,7 +58,7 @@ func NewRedisStreamBackend(cfg RedisConfig) (*RedisStreamBackend, error) {
 
 // Publish publishes an event to all subscribers (implements ports.EventBus)
 func (r *RedisStreamBackend) Publish(ctx context.Context, event interface{}) error {
-	stream := "events"
+	stream := eventsStream
 
 	// Convert event to Event structure
 	evt := Event{
@@ -124,7 +126,7 @@ func (r *RedisStreamBackend) PublishToStream(ctx context.Context, stream string,
 type eventHandlerFunc func(context.Context, Event) error
 
 // subscribeToStream subscribes to a stream and processes events
-func (r *RedisStreamBackend) subscribeToStream(ctx context.Context, stream string, consumerGroup string, handler eventHandlerFunc) error {
+func (r *RedisStreamBackend) subscribeToStream(ctx context.Context, stream, consumerGroup string, handler eventHandlerFunc) error {
 	// Create consumer group if it doesn't exist
 	err := r.client.XGroupCreateMkStream(ctx, stream, consumerGroup, "0").Err()
 	if err != nil && err.Error() != "BUSYGROUP Consumer Group name already exists" {

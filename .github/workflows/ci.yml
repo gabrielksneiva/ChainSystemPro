@@ -6,101 +6,157 @@ on:
   pull_request:
     branches: [ main, develop ]
 
+permissions:
+  contents: write
+  security-events: write
+  actions: read
+  checks: write
+
+env:
+  GO_VERSION: '1.22'
+  MIN_COVERAGE: '90'
+
 jobs:
   test:
-    name: Test
+    name: Test & Coverage
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Set up Go
+
+      - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.22'
-      
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+
+      - name: Cache Go build
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+
       - name: Download dependencies
         run: go mod download
-      
-      - name: Run tests
-        run: go test ./... -v -race -coverprofile=coverage.out -covermode=atomic
-      
-      - name: Check coverage
+
+      - name: Run tests with coverage
         run: |
-          COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print substr($3, 1, length($3)-1)}')
-          echo "Total coverage: $COVERAGE%"
-          if (( $(echo "$COVERAGE < 90" | bc -l) )); then
-            echo "Coverage is below 90%!"
+          go test ./... -race -coverprofile=coverage.out -covermode=atomic -v
+
+      - name: Verify coverage >= $MIN_COVERAGE%
+        run: |
+          total=$(go tool cover -func=coverage.out | awk '/total/ {print substr($3, 1, length($3)-1)}')
+          echo "{\"coverage\":$total}" > coverage.json
+          required=${MIN_COVERAGE}
+
+          echo "Coverage: $total% (required: $required%)"
+
+          if (( $(echo "$total < $required" | bc -l) )); then
+            echo "❌ Coverage below required threshold!"
             exit 1
           fi
-      
+
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
-          files: ./coverage.out
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage.out
           fail_ci_if_error: true
 
   lint:
     name: Lint
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Set up Go
+
+      - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.22'
-      
-      - name: golangci-lint
-        uses: golangci/golangci-lint-action@v4
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+
+      - name: Cache golangci-lint
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/golangci-lint
+          key: golangci-${{ runner.os }}
+
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v6
         with:
           version: latest
-          args: --timeout 5m
+          args: --timeout=5m --issues-exit-code=1 --out-format=github-actions,sarif --output=lint-results.sarif
+
+      - name: Upload lint SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: lint-results.sarif
 
   security:
     name: Security Scan
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Set up Go
+
+      - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.22'
-      
-      - name: Run Gosec Security Scanner
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+
+      - name: Run gosec
         uses: securego/gosec@master
         with:
-          args: './...'
-      
-      - name: Run Trivy vulnerability scanner
+          args: '-fmt=sarif -out=gosec-results.sarif ./...'
+
+      - name: Upload gosec SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: gosec-results.sarif
+
+      - name: Cache Trivy DB
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/trivy
+          key: trivy-db
+
+      - name: Trivy fs scan
         uses: aquasecurity/trivy-action@master
         with:
           scan-type: 'fs'
           scan-ref: '.'
           format: 'sarif'
           output: 'trivy-results.sarif'
-      
-      - name: Upload Trivy results to GitHub Security tab
+          severity: 'HIGH,CRITICAL'
+
+      - name: Upload Trivy SARIF
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: 'trivy-results.sarif'
+          sarif_file: trivy-results.sarif
 
   build:
-    name: Build
+    name: Build App
     runs-on: ubuntu-latest
     needs: [test, lint]
+
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Set up Go
+
+      - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.22'
-      
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+
       - name: Build
-        run: go build -v -o bin/server ./cmd/server
-      
-      - name: Upload artifact
+        run: |
+          go build -trimpath -ldflags="-s -w" -o bin/server ./cmd/server
+
+      - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: server
