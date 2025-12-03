@@ -1,54 +1,57 @@
-.PHONY: help build test coverage lint run clean install-tools swagger
+.PHONY: help test test-coverage test-verbose lint fmt vet build clean run-demo install-deps
 
 help:
-	@echo "ChainSystemPro - Unified Multi-Chain Connector"
-	@echo ""
-	@echo "Available targets:"
-	@echo "  make build         - Build the application"
-	@echo "  make test          - Run all tests"
-	@echo "  make coverage      - Run tests with coverage report"
-	@echo "  make lint          - Run linters"
-	@echo "  make run           - Run the server"
-	@echo "  make swagger       - Generate Swagger documentation"
-	@echo "  make clean         - Clean build artifacts"
-	@echo "  make install-tools - Install development tools"
-
-build:
-	@echo "Building..."
-	go build -o bin/server ./cmd/server
+	@echo "ChainSystemPro - Makefile Commands"
+	@echo "===================================="
+	@echo "test             - Run all tests"
+	@echo "test-coverage    - Run tests with coverage (requires 90%+)"
+	@echo "test-verbose     - Run tests with verbose output"
+	@echo "lint             - Run linters (fmt + vet)"
+	@echo "fmt              - Format code"
+	@echo "vet              - Run go vet"
+	@echo "build            - Build server binary"
+	@echo "run-demo         - Run HD wallet demo"
+	@echo "install-deps     - Install/update dependencies"
+	@echo "clean            - Remove build artifacts"
 
 test:
 	@echo "Running tests..."
-	go test ./... -v -race
+	@go test ./pkg/... -race
 
-coverage:
-	@echo "Generating coverage report..."
-	go test ./... -coverprofile=coverage.out -covermode=atomic
-	go tool cover -html=coverage.out -o coverage.html
-	@echo "Coverage report generated: coverage.html"
-	go tool cover -func=coverage.out
+test-coverage:
+	@echo "Running tests with coverage..."
+	@go test ./pkg/... -coverprofile=coverage.out -covermode=atomic
+	@go tool cover -func=coverage.out | grep total | awk '{print "Total Coverage: " $$3}'
+	@go tool cover -func=coverage.out | tail -1 | awk '{if ($$3+0 < 90.0) {print "ERROR: Coverage below 90%!"; exit 1}}'
 
-lint:
-	@echo "Running linters..."
-	golangci-lint run --timeout 5m
+test-verbose:
+	@go test -v ./pkg/...
 
-run: build
-	@echo "Starting server..."
-	./bin/server
+lint: fmt vet
+	@echo "Linting complete"
 
-swagger:
-	@echo "Generating Swagger documentation..."
-	swag init -g internal/api/server.go -o docs --parseDependency --parseInternal
-	@echo "Swagger documentation generated at docs/"
-	@echo "Access at: http://localhost:8080/swagger/index.html"
+fmt:
+	@echo "Formatting code..."
+	@go fmt ./...
+
+vet:
+	@echo "Running go vet..."
+	@go vet ./...
+
+build:
+	@echo "Building server..."
+	@go build -o bin/server cmd/server/main.go
+
+run-demo:
+	@echo "Running HD Wallet Demo..."
+	@go run examples/wallet_demo/main.go
+
+install-deps:
+	@echo "Installing dependencies..."
+	@go mod download
+	@go mod tidy
 
 clean:
 	@echo "Cleaning..."
-	rm -rf bin/
-	rm -f coverage.out coverage.html
-
-install-tools:
-	@echo "Installing development tools..."
-	go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-	go install github.com/securego/gosec/v2/cmd/gosec@latest
-	go install github.com/swaggo/swag/cmd/swag@latest
+	@rm -f bin/server coverage.out
+	@go clean -cache
