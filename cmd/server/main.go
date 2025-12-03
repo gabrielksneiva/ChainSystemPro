@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 
-	apprpc "github.com/gabrielksneiva/ChainSystemPro/pkg/rpc"
+	apprpc "github.com/gabrielksneiva/ChainSystemPro/internal/rpc"
 	"github.com/gofiber/fiber/v2"
 )
 

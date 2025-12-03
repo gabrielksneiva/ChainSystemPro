@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/gabrielksneiva/ChainSystemPro/pkg/encoding"
+	"github.com/gabrielksneiva/ChainSystemPro/internal/encoding"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

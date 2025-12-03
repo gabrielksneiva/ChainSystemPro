@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/gabrielksneiva/ChainSystemPro/pkg/bitcoin"
+	core "github.com/gabrielksneiva/ChainSystemPro/internal/adapters/bitcoin/core"
 	"github.com/gabrielksneiva/ChainSystemPro/pkg/crypto"
 )
 
@@ -30,12 +30,12 @@ func main() {
 	addressTypes := []struct {
 		name        string
 		cryptoType  crypto.AddressType
-		bitcoinType bitcoin.AddressType
-		network     bitcoin.Network
+		bitcoinType core.AddressType
+		network     core.Network
 	}{
-		{"P2PKH (Legacy)", crypto.AddressTypeP2PKH, bitcoin.P2PKH, bitcoin.Mainnet},
-		{"P2SH (Nested SegWit)", crypto.AddressTypeP2SH, bitcoin.P2SH, bitcoin.Mainnet},
-		{"P2WPKH (Native SegWit)", crypto.AddressTypeP2WPKH, bitcoin.P2WPKH, bitcoin.Mainnet},
+		{"P2PKH (Legacy)", crypto.AddressTypeP2PKH, core.P2PKH, core.Mainnet},
+		{"P2SH (Nested SegWit)", crypto.AddressTypeP2SH, core.P2SH, core.Mainnet},
+		{"P2WPKH (Native SegWit)", crypto.AddressTypeP2WPKH, core.P2WPKH, core.Mainnet},
 	}
 
 	for _, at := range addressTypes {
@@ -55,7 +55,7 @@ func main() {
 			if err != nil {
 				log.Fatal(err)
 			}
-			btcAddr, err := bitcoin.PubKeyToAddress(addr.PublicKey(), at.bitcoinType, at.network)
+			btcAddr, err := core.PubKeyToAddress(addr.PublicKey(), at.bitcoinType, at.network)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -68,7 +68,7 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		btcChangeAddr, err := bitcoin.PubKeyToAddress(changeAddr.PublicKey(), at.bitcoinType, at.network)
+		btcChangeAddr, err := core.PubKeyToAddress(changeAddr.PublicKey(), at.bitcoinType, at.network)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -86,7 +86,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	testnetAddr, err := bitcoin.PubKeyToAddress(addr.PublicKey(), bitcoin.P2PKH, bitcoin.Testnet)
+	testnetAddr, err := core.PubKeyToAddress(addr.PublicKey(), core.P2PKH, core.Testnet)
 	if err != nil {
 		log.Fatal(err)
 	}

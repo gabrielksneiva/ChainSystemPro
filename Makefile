@@ -16,16 +16,15 @@ help:
 
 test:
 	@echo "Running tests..."
-	@go test ./pkg/... -race
+	@go test ./... -race
 
 test-coverage:
-	@echo "Running tests with coverage..."
-	@go test ./pkg/... -coverprofile=coverage.out -covermode=atomic
-	@go tool cover -func=coverage.out | grep total | awk '{print "Total Coverage: " $$3}'
-	@go tool cover -func=coverage.out | tail -1 | awk '{if ($$3+0 < 90.0) {print "ERROR: Coverage below 90%!"; exit 1}}'
+	@echo "Running tests with coverage (excluding server)..."
+	@go list ./... | grep -v '^github.com/gabrielksneiva/ChainSystemPro/cmd/server$$' | xargs go test -coverprofile=coverage.out -covermode=atomic
+	@go tool cover -func=coverage.out | tail -n 1 | awk '{print $$3}' | sed 's/%//' | awk '{ if ($$1 < 90) { printf "Total Coverage: %s%%\n", $$1; exit 1 } else { printf "Total Coverage: %s%%\n", $$1 } }'
 
 test-verbose:
-	@go test -v ./pkg/...
+	@go test -v ./...
 
 lint: fmt vet
 	@echo "Linting complete"

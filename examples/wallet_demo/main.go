@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/gabrielksneiva/ChainSystemPro/pkg/bitcoin"
+	"github.com/gabrielksneiva/ChainSystemPro/internal/adapters/bitcoin/core"
 	"github.com/gabrielksneiva/ChainSystemPro/pkg/crypto"
 )
 
@@ -28,11 +28,11 @@ func main() {
 	addressTypes := []struct {
 		name        string
 		cryptoType  crypto.AddressType
-		bitcoinType bitcoin.AddressType
+		bitcoinType core.AddressType
 	}{
-		{"P2PKH (Legacy)", crypto.AddressTypeP2PKH, bitcoin.P2PKH},
-		{"P2SH (Nested SegWit)", crypto.AddressTypeP2SH, bitcoin.P2SH},
-		{"P2WPKH (Native SegWit)", crypto.AddressTypeP2WPKH, bitcoin.P2WPKH},
+		{"P2PKH (Legacy)", crypto.AddressTypeP2PKH, core.P2PKH},
+		{"P2SH (Nested SegWit)", crypto.AddressTypeP2SH, core.P2SH},
+		{"P2WPKH (Native SegWit)", crypto.AddressTypeP2WPKH, core.P2WPKH},
 	}
 
 	for _, at := range addressTypes {
@@ -52,7 +52,7 @@ func main() {
 				log.Fatal(err)
 			}
 
-			btcAddr, err := bitcoin.PubKeyToAddress(addr.PublicKey(), at.bitcoinType, bitcoin.Mainnet)
+			btcAddr, err := core.PubKeyToAddress(addr.PublicKey(), at.bitcoinType, core.Mainnet)
 			if err != nil {
 				log.Fatal(err)
 			}

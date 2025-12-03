@@ -1,4 +1,4 @@
-package bitcoin
+package core
 
 import (
 	"crypto/sha256"
