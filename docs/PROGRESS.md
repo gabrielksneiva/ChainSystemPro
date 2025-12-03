@@ -86,8 +86,22 @@ hex, _ := tx.Serialize()
 
 ### Fase 1.5 - Transaction Signing
 
-- Assinar inputs P2PKH, P2SH-P2WPKH, P2WPKH
+- Assinatura de inputs P2PKH, P2SH-P2WPKH, P2WPKH
 - Suporte a multi-input transactions
+
+### REST API (parcial)
+
+- POST `/tx/broadcast` body `{ hex: string }` → `{ txid }`
+- GET `/tx/:txid/status` → `{ txid, confirmations, confirmed }`
+
+Run:
+
+```bash
+export BTC_RPC_URL=http://localhost:8332
+export BTC_RPC_USER=bitcoinrpc
+export BTC_RPC_PASS=yourpass
+make build && ./bin/server
+```
 
 ### Fase 1.6 - Broadcast & Tracking
 
