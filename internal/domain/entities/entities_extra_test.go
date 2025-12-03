@@ -51,6 +51,49 @@ func TestFeeGetters(t *testing.T) {
 	require.Equal(t, big.NewInt(2), eip1559Fee.MaxPriorityFee())
 }
 
+func TestNewFee_EdgeCases(t *testing.T) {
+	t.Parallel()
+
+	// Zero gas limit
+	_, err := NewFee(0, big.NewInt(20), "ETH")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "gas limit cannot be zero")
+
+	// Zero gas price
+	_, err = NewFee(21000, big.NewInt(0), "ETH")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "gas price must be positive")
+}
+
+func TestNewEIP1559Fee_EdgeCases(t *testing.T) {
+	t.Parallel()
+
+	// Zero gas limit
+	_, err := NewEIP1559Fee(0, big.NewInt(30), big.NewInt(2), "ETH")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "gas limit cannot be zero")
+
+	// Negative max priority fee
+	_, err = NewEIP1559Fee(21000, big.NewInt(30), big.NewInt(-1), "ETH")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "max priority fee cannot be negative")
+
+	// Zero max priority fee should work
+	fee, err := NewEIP1559Fee(21000, big.NewInt(30), big.NewInt(0), "ETH")
+	require.NoError(t, err)
+	require.NotNil(t, fee)
+
+	// Empty currency
+	_, err = NewEIP1559Fee(21000, big.NewInt(30), big.NewInt(2), "")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "currency cannot be empty")
+
+	// Gas limit overflow
+	_, err = NewEIP1559Fee(9223372036854775808, big.NewInt(30), big.NewInt(2), "ETH")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "gas limit exceeds maximum safe value")
+}
+
 func TestWalletGetters(t *testing.T) {
 	t.Parallel()
 

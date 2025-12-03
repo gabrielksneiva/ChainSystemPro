@@ -37,6 +37,32 @@ func TestRegisterAdapters_ErrorOnNilAdapter(t *testing.T) {
 	assert.Error(t, err)
 }
 
+func TestRegisterAdapters_PolygonError(t *testing.T) {
+	t.Parallel()
+	reg := mocks.NewMockChainRegistry()
+	params := AdapterParams{
+		Registry: reg,
+		Ethereum: &mocks.MockChainAdapter{},
+		Polygon:  nil, // force error on second register
+		Tron:     &mocks.MockChainAdapter{},
+	}
+	err := registerAdapters(params)
+	assert.Error(t, err)
+}
+
+func TestRegisterAdapters_TronError(t *testing.T) {
+	t.Parallel()
+	reg := mocks.NewMockChainRegistry()
+	params := AdapterParams{
+		Registry: reg,
+		Ethereum: &mocks.MockChainAdapter{},
+		Polygon:  &mocks.MockChainAdapter{},
+		Tron:     nil, // force error on third register
+	}
+	err := registerAdapters(params)
+	assert.Error(t, err)
+}
+
 func TestRegisterAdapters_ValidatesAllAdapters(t *testing.T) {
 	t.Parallel()
 	reg := mocks.NewMockChainRegistry()

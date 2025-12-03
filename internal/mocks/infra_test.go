@@ -11,17 +11,29 @@ func TestMockChainRegistry_AllMethods(t *testing.T) {
 	t.Parallel()
 	r := NewMockChainRegistry()
 	adapter := &MockChainAdapter{}
-	// Register
-	err := r.Register("eth", adapter)
+
+	// Test Register with nil should error
+	err := r.Register("nil-test", nil)
+	assert.Error(t, err)
+
+	// Register valid adapter
+	err = r.Register("eth", adapter)
 	assert.NoError(t, err)
 	assert.True(t, r.Has("eth"))
+
 	// Get
 	a, err := r.Get("eth")
 	assert.NoError(t, err)
 	assert.Equal(t, adapter, a)
+
+	// Get non-existent
+	_, err = r.Get("unknown")
+	assert.Error(t, err)
+
 	// List
 	chains := r.List()
 	assert.Contains(t, chains, "eth")
+
 	// Unregister
 	err = r.Unregister("eth")
 	assert.NoError(t, err)

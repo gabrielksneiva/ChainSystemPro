@@ -86,6 +86,49 @@ func TestNewDatabase(t *testing.T) {
 		assert.NoError(t, err)
 		assert.False(t, exists)
 	})
+
+	t.Run("WithTransaction Panic", func(t *testing.T) {
+		defer func() {
+			if r := recover(); r == nil {
+				t.Error("Expected panic but got none")
+			}
+		}()
+
+		_ = db.WithTransaction(ctx, func(tx *sqlx.Tx) error {
+			panic("test panic")
+		})
+	})
+
+	t.Run("Close", func(t *testing.T) {
+		// Create a new connection just for this test
+		cfg := Config{
+			Host:     host,
+			Port:     port.Int(),
+			User:     "testuser",
+			Password: "testpass",
+			DBName:   "testdb",
+			SSLMode:  "disable",
+		}
+		db2, err := New(cfg)
+		require.NoError(t, err)
+
+		err = db2.Close()
+		assert.NoError(t, err)
+	})
+}
+func TestNewDatabase_InvalidConfig(t *testing.T) {
+	cfg := Config{
+		Host:     "invalid-host",
+		Port:     9999,
+		User:     "invalid",
+		Password: "invalid",
+		DBName:   "invalid",
+		SSLMode:  "disable",
+	}
+
+	_, err := New(cfg)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "failed to connect to database")
 }
 
 func TestRunMigrations(t *testing.T) {
@@ -128,6 +171,10 @@ func TestRunMigrations(t *testing.T) {
 	defer db.Close()
 
 	// Run migrations
+	err = db.RunMigrations("../../../migrations")
+	require.NoError(t, err)
+
+	// Run migrations again (should handle ErrNoChange)
 	err = db.RunMigrations("../../../migrations")
 	require.NoError(t, err)
 
