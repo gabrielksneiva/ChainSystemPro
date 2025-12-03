@@ -84,16 +84,11 @@ jobs:
           path: ~/.cache/golangci-lint
           key: golangci-${{ runner.os }}
 
-      - name: Run golangci-lint (with SARIF output)
+      - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v6
         with:
           version: latest
-          args: --timeout=5m --issues-exit-code=1 --out-format=github-actions,sarif --output=golangci-lint.sarif
-
-      - name: Upload lint SARIF
-        uses: github/codeql-action/upload-sarif@v4
-        with:
-          sarif_file: golangci-lint.sarif
+          args: --timeout=5m --issues-exit-code=1
 
   security:
     name: Security Scan
